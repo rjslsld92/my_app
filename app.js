@@ -2,9 +2,21 @@ var express = require('express');
 
 const { dirname } = require('path');
 const path = require('path');
-const { allowedNodeEnvironmentFlags } = require('process');
-
 var app = express();
+
+var oracledb = require('oracledb');
+oracledb.getConnection({
+    user: '',
+    password: '',
+    host: 'localhost',
+    database: 'xe'
+}, function(err, conn){
+    if(err){
+        console.log('connection err',err);
+        return;
+    }
+    console.log('connection success');
+});
 
 /* 
 app.get('/', function(req,res){
