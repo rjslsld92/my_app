@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/rjslsld92/my_app#readme",
   "dependencies": {
+    "ejs": "^3.1.5",
     "express": "^4.17.1"
   }
 }
