@@ -9,7 +9,9 @@ var mongoose = require('mongoose');
 mongoose.connect("mongodb+srv://test_user:test_user@mongolgh.qvo0f.mongodb.net/test?retryWrites=true&w=majority");
  */
 /* 환경변수에 등록 한 후 사용 */
-mongoose.connect(process.env.MONGO_DB);
+console.log(process.env.MONGO_DB);
+mongoose.connect(process.env.MONGO_DB, {useUnifiedTopology: true, useNewUrlParser: true });
+
 const db = mongoose.connection;
 
 // mongoDB 연동 실패 시 에러 메시지 출력
@@ -127,5 +129,5 @@ console.log(__dirname);
 console.log(path.join(__dirname , 'public'));
  */
 app.listen(3000, function(){
-    console.log('SERVER ON2');
+    console.log('SERVER ON');
 });
