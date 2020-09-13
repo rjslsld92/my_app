@@ -64,10 +64,10 @@ passport.serializeUser(function (user, done) {
     done(null, user.id);
 });
 
-passport.deserializeUser(function (user, done) {
+passport.deserializeUser(function (id, done) {
     User.findById(id, function (err, user) {
         done(null, user.id);
-    })
+    });
 });
 
 var localStrategy = require('passport-local').Strategy;
@@ -101,20 +101,25 @@ app.get('/', function (req, res) {
     res.redirect('/posts');
 });
 
-app.get('/login', function (req, res, next) {
-    req.flash("email");
-    if (req.body.email.length === 0 || req.body.password.length === 0) {
-        req.flash("email", req.body.email);
-        req.flash("loginError", "Please enter bogh email and password.");
-        res.redirect('/login');
-    } else {
-        next();
-    }
-}, passport.authenticate('local-login', {
-    successRedirect: '/posts',
-    failureRedirect: '/login',
-    failureFlash: true
-})
+app.get('/login', function (req, res) {
+    res.render('login/login', { email: req.flash("email")[0], loginError: req.flash('loginError') });
+});
+
+app.post('/login',
+    function (req, res, next) {
+        req.flash("email"); // flush email data
+        if (req.body.email.length === 0 || req.body.password.length === 0) {
+            req.flash("email", req.body.email);
+            req.flash("loginError", "Please enter both email and password.");
+            res.redirect('/login');
+        } else {
+            next();
+        }
+    }, passport.authenticate('local-login', {
+        successRedirect: '/posts',
+        failureRedirect: '/login',
+        failureFlash: true
+    })
 );
 
 app.get('/logout', function (req, res) {
@@ -155,7 +160,7 @@ app.get('/posts/:id', function (req, res) {
         if (err) {
             return res.json({ success: false, message: err });
         }
-        res.render("posts/show", { data: post });
+        res.render("posts/show", { user: post });
     });
 }); // show
 
