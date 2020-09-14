@@ -11,7 +11,6 @@ var passport = require('passport');
 var session = require('express-session');
 var flash = require('connect-flash');
 var async = require('async');
-const { isBuffer } = require('util');
 
 // connect database
 /* useFindAndModify: false -> delete 했을때 생기는 에러로그 안뜨게 하기 위한 옵션 */
@@ -66,7 +65,7 @@ passport.serializeUser(function (user, done) {
 
 passport.deserializeUser(function (id, done) {
     User.findById(id, function (err, user) {
-        done(null, user.id);
+        done(err, user);
     });
 });
 
@@ -160,7 +159,7 @@ app.get('/posts/:id', function (req, res) {
         if (err) {
             return res.json({ success: false, message: err });
         }
-        res.render("posts/show", { user: post });
+        res.render("posts/show", { data: post });
     });
 }); // show
 
@@ -210,15 +209,12 @@ app.post('/users', checkUserRegValidation, function (req, res, next) {
         res.redirect('/login');
     });
 }); //create
-
 app.get('/users/:id', function (req, res) {
     User.findById(req.params.id, function (err, user) {
-        if (err) {
-            return res.json({ success: false, message: err });
-        }
-        res.redirect('users/show', { user: user });
+        if (err) return res.json({ success: false, message: err });
+        res.render("users/show", { user: user });
     });
-}); //show
+}); // show
 
 app.get('/users/:id/edit', function (req, res) {
     User.findById(req.params.id, function (err, user) {
@@ -234,6 +230,15 @@ app.get('/users/:id/edit', function (req, res) {
         });
     });
 }); //edit
+
+app.delete('/users/:id', function (req, res) {
+    User.findByIdAndRemove(req.params.id, function (err, post) {
+        if (err) {
+            return res.json({ success: false, message: err });
+        }
+        res.redirect('/logout');
+    });
+}); //destroy
 
 app.put('/users/:id', checkUserRegValidation, function (req, res) {
     User.findById(req.params.id, req.body.user, function (err, user) {
