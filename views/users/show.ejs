@@ -18,7 +18,8 @@
             <div class="content">
                 <p class="user_info">Email<small> : <%= user.email %></small></p>
                 <p class="user_info">Nickname<small> : <%= user.nickname %></small></p>
-                <p class="user_info">Password<small> : <%= user.password %></small></p>
+                <!-- hash 로 바꾸면서 삭제 -->
+                <!-- <p class="user_info">Password<small> : <%= user.password %></small></p> -->
                 <a href="/users/<%=user._id%>/edit"><button>Edit</button></a>
                 
                 <form class="btn_delete" action="/users/<%=user._id%>?_method=delete" method="post">
