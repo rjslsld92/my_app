@@ -27,9 +27,9 @@ db.on("error", function (err) {
 var postSchema = mongoose.Schema({
     title: { type: String, required: true },
     body: { type: String, required: true },
+    author: {type:mongoose.Schema.Types.ObjectId, ref:'user', required:true},
     createdAt: { type: Date, default: Date.now },
     updatedAt: Date
-    //updatedAt: { type: Date, default: Date.now }
 });
 var Post = mongoose.model('post', postSchema);
 
@@ -158,21 +158,24 @@ app.get('/posts', function (req, res) {
     sort 로 정렬. (-createdAt 이므로 createdAt 역방향 정렬)
     그 다음 exec 으로 함수를 수정.    
     */
-    Post.find({}).sort('-createdAt').exec(function (err, posts) {
+    Post.find({}).populate("author").sort('-createdAt').exec(function (err, posts) {
         if (err) {
             return res.json({ success: false, message: err });
         }
-        res.render("posts/index", { data: posts, user: req.user });
+        res.render("posts/index", { posts:posts, user:req.user });
     });
 }); // index
 
-app.get('/posts/new', function (req, res) {
-    res.render("posts/new");
+app.get('/posts/new', isLoggedIn, function (req, res) {
+    res.render("posts/new", {user : req.user});
 }); // new
 
-app.post('/posts', function (req, res) {
-    Post.create(req.body.post, function (err, post) {
+app.post('/posts', isLoggedIn, function (req, res) {
+    req.body.post.author = req.user._id;
+
+    Post.create(req.body.post,function (err,post) {
         if (err) {
+            console.log('test');
             return res.json({ success: false, message: err });
         }
         res.redirect('/posts');
@@ -180,37 +183,46 @@ app.post('/posts', function (req, res) {
 }); // create
 
 app.get('/posts/:id', function (req, res) {
-    Post.findById(req.params.id, function (err, post) {
+    Post.findById(req.params.id).populate("author").exec(function(err, post){
         if (err) {
             return res.json({ success: false, message: err });
         }
-        res.render("posts/show", { data: post });
+        res.render("posts/show", { post: post , user: req.user});
     });
 }); // show
 
-app.get('/posts/:id/edit', function (req, res) {
+app.get('/posts/:id/edit', isLoggedIn, function (req, res) {
     Post.findById(req.params.id, function (err, post) {
         if (err) {
             return res.json({ success: false, message: err });
         }
-        res.render("posts/edit", { data: post });
+        if(!req.user._id.equals(post.user)){
+            return res.json({ success: false, message: "Unauthorized Attempt" });
+        }
+        res.render("posts/edit", { post: post, user: req.user });
     });
 }); // edit
 
-app.put('/posts/:id', function (req, res) {
-    //req.body.post.updatedAt = Date.now();
-    Post.findByIdAndUpdate(req.params.id, req.body.post, function (err, post) {
+app.put('/posts/:id', isLoggedIn, function (req, res) {
+    req.body.post.updatedAt = Date.now();
+    Post.findByIdAndUpdate({_is:req.params.id, author: req.user._id}, req.body.post, function (err, post) {
         if (err) {
             return res.json({ success: false, message: err });
+        }
+        if(!post){
+            return res.json({ success: false, message: "No data found to update" });
         }
         res.redirect('/posts/' + req.params.id);
     });
 }); //update
 
-app.delete('/posts/:id', function (req, res) {
-    Post.findByIdAndRemove(req.params.id, function (err, post) {
+app.delete('/posts/:id', isLoggedIn, function (req, res) {
+    Post.findByIdAndRemove({_is:req.params.id, author: req.user._id}, function (err, post) {
         if (err) {
             return res.json({ success: false, message: err });
+        }
+        if(!post){
+            return res.json({ success: false, message: "No data found to delete" });
         }
         res.redirect('/posts');
     });

@@ -16,7 +16,6 @@
                 <a href="/posts/new"><button>NEW</button></a>
                 
                 <% if(user) {%>
-                    <%= user._id %>
                     <a href="/logout" class="float_right"><button>Logout</button></a>
                     <a href="/users/<%= user._id %>" class="float_right"><button>My Profile (<%= user.nickname %>)</button></a>
                 <% } else { %>
@@ -25,13 +24,17 @@
                 <% } %>
                 
                 <ul>
-                    <li class="header">title <span>Date</span></li>
-                    <% data.forEach(function(e){ %>
-                    <li>
-                        <a href="/posts/<%= e._id %>"><%= e.title %></a>
-                        <span><%= e.createdAt.toLocaleDateString() %></span>
+                    <li class="header">title 
+                        <span class="float_right">Date</span>
+                        <span class="float_right">Author</span>
                     </li>
-                    <% }) %>
+                    <% posts.forEach(function(post){ %>
+                        <li>
+                          <a href="/posts/<%= post._id %>"><%= post.title %></a>
+                          <span class="float_right"><%= post.createdAt.toLocaleDateString() %></span>
+                          <span class="float_right"><%= post.author.nickname %></span>
+                        </li>
+                      <% }) %>
                 </ul>
 
             </div>
